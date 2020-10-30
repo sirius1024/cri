@@ -40,7 +40,6 @@ func main() {
 	for i := 0; i < cores; i++ {
 		go func() {
 			for {
-				// time.Sleep(time.Microsecond)
 				rand.Intn(math.MaxInt32)
 			}
 		}()
