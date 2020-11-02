@@ -25,9 +25,9 @@ func main() {
 	totalSwap := mem.Totalswap / gb
 	freeMem := mem.Freeram / gb
 	freeSwap := mem.Freeswap / gb
-	needAlloc := freeMem - freeSwap - 3
+	needAlloc := (freeMem-freeSwap)/2 - 3
 	// 占用策略：freeMem-3GB
-	fmt.Printf("总内存：%v，总SWAP：%v，可用内存：%v，可用SWAP：%v，预计占用内存（free mem - freeSwap - 3g）：%vGB\n", totalMem, totalSwap, freeMem, freeSwap, needAlloc)
+	fmt.Printf("总内存：%v，总SWAP：%v，可用内存：%v，可用SWAP：%v，预计占用内存(freeMem-freeSwap)/2 - 3g：%vGB\n", totalMem, totalSwap, freeMem, freeSwap, needAlloc)
 	fmt.Println("开始申请内存...")
 
 	ramMap := make(map[uint64]string, needAlloc)
