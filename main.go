@@ -26,7 +26,7 @@ func main() {
 	freeSwap := mem.Freeswap / gb
 	needAlloc := freeMem - freeSwap - 4
 	if needAlloc <= 0 {
-		needAlloc = 1
+		needAlloc = uint64(1)
 	}
 	// 占用策略：freeMem-3GB
 	fmt.Printf("总内存：%v，总SWAP：%v，可用内存：%v，可用SWAP：%v，预计占用内存freeMem-freeSwap - 4g：%vGB\n", totalMem, totalSwap, freeMem, freeSwap, needAlloc)
