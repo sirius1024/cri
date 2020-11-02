@@ -24,7 +24,10 @@ func main() {
 	totalSwap := mem.Totalswap / gb
 	freeMem := mem.Freeram / gb
 	freeSwap := mem.Freeswap / gb
-	needAlloc := freeMem - freeSwap
+	needAlloc := uint64(0)
+	if freeMem >= freeSwap {
+		needAlloc = freeMem - freeSwap
+	}
 	if needAlloc <= 4 {
 		needAlloc = 1
 	}
