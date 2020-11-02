@@ -7,35 +7,47 @@ import (
 	"math/rand"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
 func main() {
+	// total ram
+	const gb = 1024 * 1024 * 1024
+	mem := &syscall.Sysinfo_t{}
+	err := syscall.Sysinfo(mem)
+	if err != nil {
+		panic(err)
+	}
+	totalMem := mem.Totalram / gb
+	totalSwap := mem.Totalswap / gb
+	freeMem := mem.Freeram / gb
+	freeSwap := mem.Freeswap / gb
+	needAlloc := freeMem - freeSwap - 3
+	// 占用策略：freeMem-2GB
+	fmt.Printf("总内存：%v，总SWAP：%v，可用内存：%v，可用SWAP：%v，预计占用内存（free mem - freeSwap - 3g）：%vGB\n", totalMem, totalSwap, freeMem, freeSwap, needAlloc)
+	fmt.Println("开始申请内存...")
 
-	// RAM, 填满内存，每个核心，每0.5s刷写内存数据
-	maxLen := 100000000
-	ramMap := make(map[int]string, maxLen)
-	for i := 0; i < maxLen-1; i++ {
-		ramMap[i] = fmt.Sprint(i)
+	ramMap := make(map[uint64]string, needAlloc)
+	for i := uint64(0); i < needAlloc; i++ {
+		ramMap[i] = strings.Repeat("a", gb)
 	}
 
-	fmt.Println(len(ramMap))
-
+	fmt.Println("开始循环交换内存数据...")
 	cores := runtime.NumCPU()
-	runtime.GOMAXPROCS(cores)
-	someMapMutex := sync.RWMutex{}
+	mapMutex := sync.RWMutex{}
 	for i := 0; i < cores; i++ {
 		go func() {
-			for {
-				someMapMutex.Lock()
-				ramMap[rand.Intn(maxLen-1)] = fmt.Sprint(rand.Intn(math.MaxInt32))
-				someMapMutex.Unlock()
-				time.Sleep(time.Millisecond * 500)
-			}
+			mapMutex.Lock()
+			ramMap[rand.Uint64()] = strings.Repeat(fmt.Sprint(rand.Intn(9)), gb)
+			mapMutex.Unlock()
+			time.Sleep(time.Millisecond * 500)
 		}()
 	}
 
+	fmt.Println("开始占用CPU资源……")
 	// 把CPU搞起来
 	for i := 0; i < cores; i++ {
 		go func() {
@@ -44,6 +56,8 @@ func main() {
 			}
 		}()
 	}
+
+	fmt.Println("启动成功，日志位于./cri.log")
 	// 写日志监测
 	for {
 		time.Sleep(time.Second)
